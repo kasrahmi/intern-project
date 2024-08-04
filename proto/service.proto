@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package myproject;
+
+// The service definition.
+service MyService {
+  // Sends a request to the server.
+  rpc MyMethod (MyRequest) returns (MyResponse);
+}
+
+// The request message containing the user's input.
+message MyRequest {
+  string name = 1;
+}
+
+// The response message containing the results.
+message MyResponse {
+  string message = 1;
+}
