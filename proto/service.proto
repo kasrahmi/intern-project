@@ -1,22 +1,22 @@
-// service.proto
 syntax = "proto3";
 
 package myproject;
 
-// Define the Go package for generated code
-option go_package = "./intern-project";
+option go_package = "intern-project/.";
 
 // The service definition.
 service MyService {
-  rpc MyMethod (MyRequest) returns (MyResponse);
+  rpc ProcessRequest (Request) returns (Response);
 }
 
 // The request message.
-message MyRequest {
+message Request {
   string name = 1;
+  int32 duration_seconds = 2;  // Duration for CPU-bound task
 }
 
 // The response message.
-message MyResponse {
+message Response {
   string message = 1;
+  int64 end_to_end_latency_ms = 2;  // Latency in milliseconds
 }
