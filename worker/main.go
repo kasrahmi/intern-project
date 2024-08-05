@@ -1,54 +1,30 @@
 package main
 
 import (
-    "encoding/json"
-    "fmt"
+    "context"
+    "google.golang.org/grpc"
     "log"
-    "net/http"
-    "time"
+    "net"
+    pb "worker/proto" // Import path should match the generated code's package
 )
 
-type Metrics struct {
-    Ack          string  `json:"ack"`
-    E2ELatencyMs float64 `json:"e2e_latency_ms"`
+type server struct {
+    pb.UnimplementedMyServiceServer // This embeds the default server implementation
 }
 
-func cpuSpin(duration time.Duration) {
-    end := time.Now().Add(duration)
-    for time.Now().Before(end) {
-    }
-}
-
-func workerHandler(w http.ResponseWriter, r *http.Request) {
-    startTime := time.Now()
-
-    duration := 100 * time.Millisecond
-    if d, err := time.ParseDuration(r.URL.Query().Get("duration")); err == nil {
-        duration = d
-    }
-
-    cpuSpin(duration)
-
-    e2eLatency := time.Since(startTime).Seconds() * 1000
-
-    metrics := Metrics{
-        Ack:          "Request processed",
-        E2ELatencyMs: e2eLatency,
-    }
-
-    w.Header().Set("Content-Type", "application/json")
-    if err := json.NewEncoder(w).Encode(metrics); err != nil {
-        log.Printf("Failed to encode response: %v", err)
-        http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-        return
-    }
+func (s *server) MyMethod(ctx context.Context, req *pb.MyRequest) (*pb.MyResponse, error) {
+    return &pb.MyResponse{Message: "Hello " + req.GetName()}, nil
 }
 
 func main() {
-    http.HandleFunc("/worker", workerHandler)
-    port := ":8080"
-    fmt.Printf("Worker function is running on port %s\n", port)
-    if err := http.ListenAndServe(port, nil); err != nil {
-        log.Fatalf("Failed to start server: %v", err)
+    lis, err := net.Listen("tcp", ":50052") // Ensure this port matches the client's connection port
+    if err != nil {
+        log.Fatalf("failed to listen: %v", err)
+    }
+    s := grpc.NewServer()
+    pb.RegisterMyServiceServer(s, &server{}) // Register the MyService server
+    log.Println("Starting gRPC server on port 50052...")
+    if err := s.Serve(lis); err != nil {
+        log.Fatalf("failed to serve: %v", err)
     }
 }

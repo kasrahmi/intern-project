@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package loadgen;
+
+option go_package = "intern-project/loadgen/proto;loadgen_proto";
+
+// The service definition.
+service MyService {
+  rpc MyMethod (MyRequest) returns (MyResponse);
+}
+
+// The request message.
+message MyRequest {
+  string name = 1;
+}
+
+// The response message.
+message MyResponse {
+  string message = 1;
+}

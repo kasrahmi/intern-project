@@ -1,34 +1,24 @@
 package main
 
 import (
-    "fmt"
-    "net/http"
-    "time"
+    "context"
+    "google.golang.org/grpc"
+    "log"
+    pb "load-generator/proto" // Ensure this matches the generated code's package
 )
 
 func main() {
-    url := "http://localhost:8080/worker"
-    rps := 10
-    interval := time.Second / time.Duration(rps)
-
-    ticker := time.NewTicker(interval)
-    defer ticker.Stop()
-
-    for {
-        select {
-        case <-ticker.C:
-            go sendRequest(url)
-        }
-    }
-}
-
-func sendRequest(url string) {
-    resp, err := http.Get(url)
+    conn, err := grpc.Dial("localhost:50052", grpc.WithInsecure(), grpc.WithBlock())
     if err != nil {
-        fmt.Printf("Failed to send request: %v\n", err)
-        return
+        log.Fatalf("did not connect: %v", err)
     }
-    defer resp.Body.Close()
+    defer conn.Close()
 
-    fmt.Printf("Request sent. Response status: %s\n", resp.Status)
+    c := pb.NewMyServiceClient(conn)
+
+    resp, err := c.MyMethod(context.Background(), &pb.MyRequest{Name: "World"})
+    if err != nil {
+        log.Fatalf("could not greet: %v", err)
+    }
+    log.Printf("Response: %s", resp.GetMessage())
 }
