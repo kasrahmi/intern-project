@@ -2,21 +2,22 @@ syntax = "proto3";
 
 package myproject;
 
-option go_package = "intern-project/.";
+option go_package = "intern-project/proto;proto";
 
 // The service definition.
 service MyService {
-  rpc ProcessRequest (Request) returns (Response);
+  rpc ProcessRequest (MyRequest) returns (MyResponse);
 }
 
 // The request message.
-message Request {
+message MyRequest {
   string name = 1;
-  int32 duration_seconds = 2;  // Duration for CPU-bound task
+  int32 duration_seconds = 2; // Duration of CPU-bound task
 }
 
 // The response message.
-message Response {
+message MyResponse {
   string message = 1;
-  int64 end_to_end_latency_ms = 2;  // Latency in milliseconds
+  int64 end_to_end_latency_ms = 2;
+  string worker_id = 3; // Add Worker ID to the response
 }

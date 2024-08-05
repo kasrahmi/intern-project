@@ -4,7 +4,7 @@
 // - protoc             v5.27.3
 // source: proto/service.proto
 
-package __
+package proto
 
 import (
 	context "context"
@@ -28,7 +28,7 @@ const (
 //
 // The service definition.
 type MyServiceClient interface {
-	ProcessRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
+	ProcessRequest(ctx context.Context, in *MyRequest, opts ...grpc.CallOption) (*MyResponse, error)
 }
 
 type myServiceClient struct {
@@ -39,9 +39,9 @@ func NewMyServiceClient(cc grpc.ClientConnInterface) MyServiceClient {
 	return &myServiceClient{cc}
 }
 
-func (c *myServiceClient) ProcessRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
+func (c *myServiceClient) ProcessRequest(ctx context.Context, in *MyRequest, opts ...grpc.CallOption) (*MyResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Response)
+	out := new(MyResponse)
 	err := c.cc.Invoke(ctx, MyService_ProcessRequest_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (c *myServiceClient) ProcessRequest(ctx context.Context, in *Request, opts 
 //
 // The service definition.
 type MyServiceServer interface {
-	ProcessRequest(context.Context, *Request) (*Response, error)
+	ProcessRequest(context.Context, *MyRequest) (*MyResponse, error)
 	mustEmbedUnimplementedMyServiceServer()
 }
 
@@ -66,7 +66,7 @@ type MyServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMyServiceServer struct{}
 
-func (UnimplementedMyServiceServer) ProcessRequest(context.Context, *Request) (*Response, error) {
+func (UnimplementedMyServiceServer) ProcessRequest(context.Context, *MyRequest) (*MyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProcessRequest not implemented")
 }
 func (UnimplementedMyServiceServer) mustEmbedUnimplementedMyServiceServer() {}
@@ -91,7 +91,7 @@ func RegisterMyServiceServer(s grpc.ServiceRegistrar, srv MyServiceServer) {
 }
 
 func _MyService_ProcessRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+	in := new(MyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func _MyService_ProcessRequest_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: MyService_ProcessRequest_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MyServiceServer).ProcessRequest(ctx, req.(*Request))
+		return srv.(MyServiceServer).ProcessRequest(ctx, req.(*MyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

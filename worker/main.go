@@ -13,12 +13,12 @@ import (
 
 type server struct {
     pb.UnimplementedMyServiceServer
-    port string
+    id string  // Unique identifier for the Worker instance
 }
 
-func (s *server) ProcessRequest(ctx context.Context, req *pb.Request) (*pb.Response, error) {
+func (s *server) ProcessRequest(ctx context.Context, req *pb.MyRequest) (*pb.MyResponse, error) {
     startTime := time.Now()
-    
+
     // Simulate CPU-bound work
     duration := time.Duration(req.GetDurationSeconds()) * time.Second
     endTime := startTime.Add(duration)
@@ -28,15 +28,17 @@ func (s *server) ProcessRequest(ctx context.Context, req *pb.Request) (*pb.Respo
 
     latency := time.Since(startTime).Milliseconds()
 
-    response := &pb.Response{
-        Message:                "Processed " + req.GetName() + " on port " + s.port,
-        EndToEndLatencyMs: latency,
+    response := &pb.MyResponse{
+        Message:                "Processed " + req.GetName(),
+        EndToEndLatencyMs:      latency,
+        WorkerId:               s.id,  // Add the Worker ID to the response
     }
     return response, nil
 }
 
 func main() {
-    port := flag.String("port", "50052", "The server port")  // Use port 50052 or any other port
+    port := flag.String("port", "50052", "The server port")  // Default to 50052 or any available port
+    id := flag.String("id", "worker-1", "Unique identifier for this worker")
     flag.Parse()
 
     lis, err := net.Listen("tcp", ":"+*port)
@@ -44,9 +46,9 @@ func main() {
         log.Fatalf("failed to listen: %v", err)
     }
     s := grpc.NewServer()
-    pb.RegisterMyServiceServer(s, &server{port: *port})
+    pb.RegisterMyServiceServer(s, &server{id: *id})
     reflection.Register(s)
-    log.Printf("Starting gRPC server on port %s...", *port)
+    log.Printf("Starting gRPC server on port %s with ID %s...", *port, *id)
     if err := s.Serve(lis); err != nil {
         log.Fatalf("failed to serve: %v", err)
     }
