@@ -9,13 +9,13 @@ import (
 )
 
 const (
-    address       = "localhost:50052"
-    requestsPerSec = 5  // Adjust the rate as needed
-    durationSec    = 5  // Duration for each request's CPU-bound task
+    address         = "localhost:50052"  // Target Worker on port 50052
+    requestsPerSec  = 5  // Adjust the rate as needed
+    durationSec     = 5  // Duration for each request's CPU-bound task
 )
 
 func sendRequest(client pb.MyServiceClient) {
-    ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+    ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)  // Increased timeout
     defer cancel()
 
     req := &pb.Request{
@@ -26,7 +26,7 @@ func sendRequest(client pb.MyServiceClient) {
     if err != nil {
         log.Fatalf("could not greet: %v", err)
     }
-    log.Printf("Response: %s, Latency: %d ms", resp.GetMessage(), resp.GetEndToEndLatencyMs())
+    log.Printf("Response from port %s: %s, Latency: %d ms", address, resp.GetMessage(), resp.GetEndToEndLatencyMs())
 }
 
 func main() {

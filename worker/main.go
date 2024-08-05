@@ -2,6 +2,7 @@ package main
 
 import (
     "context"
+    "flag"
     "google.golang.org/grpc"
     "google.golang.org/grpc/reflection"
     "log"
@@ -12,6 +13,7 @@ import (
 
 type server struct {
     pb.UnimplementedMyServiceServer
+    port string
 }
 
 func (s *server) ProcessRequest(ctx context.Context, req *pb.Request) (*pb.Response, error) {
@@ -27,21 +29,24 @@ func (s *server) ProcessRequest(ctx context.Context, req *pb.Request) (*pb.Respo
     latency := time.Since(startTime).Milliseconds()
 
     response := &pb.Response{
-        Message:                "Processed " + req.GetName(),
+        Message:                "Processed " + req.GetName() + " on port " + s.port,
         EndToEndLatencyMs: latency,
     }
     return response, nil
 }
 
 func main() {
-    lis, err := net.Listen("tcp", ":50052")
+    port := flag.String("port", "50052", "The server port")  // Use port 50052 or any other port
+    flag.Parse()
+
+    lis, err := net.Listen("tcp", ":"+*port)
     if err != nil {
         log.Fatalf("failed to listen: %v", err)
     }
     s := grpc.NewServer()
-    pb.RegisterMyServiceServer(s, &server{})
+    pb.RegisterMyServiceServer(s, &server{port: *port})
     reflection.Register(s)
-    log.Println("Starting gRPC server on port 50051...")
+    log.Printf("Starting gRPC server on port %s...", *port)
     if err := s.Serve(lis); err != nil {
         log.Fatalf("failed to serve: %v", err)
     }
