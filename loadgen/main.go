@@ -18,7 +18,6 @@ const (
 
 var workerAddresses = []string{
     "localhost:50052",
-    "localhost:50053",  // Add additional worker addresses as needed
 }
 
 func sendRequest(client pb.MyServiceClient, logFile *os.File) {
