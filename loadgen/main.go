@@ -17,7 +17,8 @@ const (
 )
 
 var workerAddresses = []string{
-    "http://worker-service.default.192.168.1.240.sslip.io:50052",  // Use the actual Knative service URL
+    "localhost:50052",
+    "localhost:50053",
 }
 
 func sendRequest(client pb.MyServiceClient, logFile *os.File) {

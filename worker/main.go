@@ -24,9 +24,11 @@ func (s *server) ProcessRequest(ctx context.Context, req *pb.MyRequest) (*pb.MyR
     // Simulate CPU-bound work
     duration := time.Duration(req.GetDurationSeconds()) * time.Second
     endTime := startTime.Add(duration)
+    i := 0
     for time.Now().Before(endTime) {
         // Busy-wait to simulate CPU-bound task
         // Consider using a more efficient way to simulate work if needed
+        i = (i + 1) % 1000000
     }
 
     latency := time.Since(startTime).Milliseconds()
