@@ -17,18 +17,15 @@ type server struct {
     id string // Unique identifier for the Worker instance
 }
 
-// ProcessRequest handles incoming gRPC requests
 func (s *server) ProcessRequest(ctx context.Context, req *pb.MyRequest) (*pb.MyResponse, error) {
     startTime := time.Now()
 
-    // Simulate work using sleep
-    duration := time.Duration(req.GetDurationSeconds()) * time.Second
-    select {
-    case <-time.After(duration):
-        // Work completed
-    case <-ctx.Done():
-        // Request was cancelled or deadline exceeded
-        return nil, ctx.Err()
+    // Simulate CPU-bound work
+    duration := time.Duration(req.GetDurationSeconds()) * time.Millisecond // Ensure the conversion is to milliseconds
+    endTime := startTime.Add(duration)
+    i := 0
+    for time.Now().Before(endTime) {
+        i = (i + 1) % 1000000
     }
 
     latency := time.Since(startTime).Milliseconds()
