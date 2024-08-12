@@ -6,7 +6,7 @@ import os
 log_data = []
 
 # Use the correct path to your log file
-log_file_path = '/Users/kasrahmi/Desktop/intern-project/new/intern-project/loadgen/loadgen_log.txt'
+log_file_path = '/Users/kasrahmi/Desktop/intern-project/new/intern-project/loadgen/loadgen_log_rps.txt'
 
 # Read the log file
 with open(log_file_path, 'r') as log_file:
