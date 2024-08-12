@@ -21,14 +21,14 @@ type server struct {
 func (s *server) ProcessRequest(ctx context.Context, req *pb.MyRequest) (*pb.MyResponse, error) {
     startTime := time.Now()
 
-    // Simulate CPU-bound work
+    // Simulate work using sleep
     duration := time.Duration(req.GetDurationSeconds()) * time.Second
-    endTime := startTime.Add(duration)
-    i := 0
-    for time.Now().Before(endTime) {
-        // Busy-wait to simulate CPU-bound task
-        // Consider using a more efficient way to simulate work if needed
-        i = (i + 1) % 1000000
+    select {
+    case <-time.After(duration):
+        // Work completed
+    case <-ctx.Done():
+        // Request was cancelled or deadline exceeded
+        return nil, ctx.Err()
     }
 
     latency := time.Since(startTime).Milliseconds()
@@ -41,6 +41,7 @@ func (s *server) ProcessRequest(ctx context.Context, req *pb.MyRequest) (*pb.MyR
     }
     return response, nil
 }
+
 
 func main() {
     // Retrieve port from environment variable or use the default

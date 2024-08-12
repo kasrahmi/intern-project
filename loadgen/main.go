@@ -38,7 +38,7 @@ func sendRequest(client pb.MyServiceClient, logFile *os.File) {
         logFile.WriteString(fmt.Sprintf("Time: %v, Error: %v\n", endTime.Format(time.RFC3339), err))
     } else {
         latency := endTime.Sub(startTime).Milliseconds()
-        log.Printf("Response: %s, Latency: %d ms, Worker ID: %s", resp.GetMessage(), resp.GetEndToEndLatencyMs(), resp.GetWorkerId())
+        // log.Printf("Response: %s, Latency: %d ms, Worker ID: %s", resp.GetMessage(), resp.GetEndToEndLatencyMs(), resp.GetWorkerId())
         logFile.WriteString(fmt.Sprintf("Time: %v, Request: %v, Response: %v, Latency: %d ms, Worker ID: %s\n",
             endTime.Format(time.RFC3339),
             req.GetName(),
@@ -65,14 +65,32 @@ func main() {
     }
     defer logFile.Close()
 
-    ticker := time.NewTicker(time.Second / time.Duration(requestsPerSec))
-    defer ticker.Stop()
+    
+    for rps := 5; rps <= 50; rps += 5 {
+        startTime := time.Now()
+        
+        logFile.WriteString(fmt.Sprintf("Starting test with %d requests per second\n", rps))
+        duration := 10 * time.Second
+        endTime := startTime.Add(duration)
+        ticker := time.NewTicker(time.Second / time.Duration(rps))
+        defer ticker.Stop()
+        for time.Now().Before(endTime) {
 
-    for {
-        select {
-        case <-ticker.C:
-            client := clients[rand.Intn(len(clients))]  // Randomly select a worker
+            <-ticker.C
+
+            client := clients[rand.Intn(len(clients))] // Randomly select a worker
             go sendRequest(client, logFile)
+             
         }
+        log.Printf("Test with %d requests per second completed\n", rps)
     }
 }
+
+// duration := time.Duration(req.GetDurationSeconds()) * time.Second
+//     endTime := startTime.Add(duration)
+//     // i := 0
+//     for time.Now().Before(endTime) {
+//         // Busy-wait to simulate CPU-bound task
+//         // Consider using a more efficient way to simulate work if needed
+//         // i = (i + 1) % 1000000
+//     }
