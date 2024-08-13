@@ -23,9 +23,9 @@ func (s *server) ProcessRequest(ctx context.Context, req *pb.MyRequest) (*pb.MyR
     // Simulate CPU-bound work
     duration := time.Duration(req.GetDurationSeconds()) * time.Millisecond // Ensure the conversion is to milliseconds
     endTime := startTime.Add(duration)
-    i := 0
+    // i := 0
     for time.Now().Before(endTime) {
-        i = (i + 1) % 1000000
+        // i = (i + 1) % 1000000
     }
 
     latency := time.Since(startTime).Milliseconds()
