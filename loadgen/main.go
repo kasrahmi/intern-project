@@ -1,20 +1,22 @@
 package main
 
 import (
-    "context"
-    "fmt"
-    "google.golang.org/grpc"
-    "log"
-    "math/rand"
-    "os"
-    "time"
+	"context"
+	"fmt"
+	"log"
+	"math/rand"
+	"os"
+	"time"
 
-    pb "load-generator/proto" // Adjust to match your module path
+	// "google.golang.org/genproto/googleapis/api/distribution"
+	"google.golang.org/grpc"
+
+	pb "load-generator/proto" // Adjust to match your module path
 )
 
 var workerAddresses = []string{
     "localhost:50052",
-    "localhost:50053",
+    // "localhost:50053",
 }
 
 // sendRequest sends a request to a worker and logs the results.
@@ -41,6 +43,15 @@ func sendRequest(client pb.MyServiceClient, logFile *os.File, rps int, distribut
             err))
     } else {
         latency := endTime.Sub(startTime).Milliseconds()
+        log.Printf("Time: %v, RPS: %d, Distribution: %s, Duration: %d ms, Request: %v, Response: %v, Latency: %d ms, Worker ID: %s\n",
+        endTime.Format(time.RFC3339),
+        rps,
+        distribution,
+        duration,
+        req.GetName(),
+        resp.GetMessage(),
+        latency,
+        resp.GetWorkerId())
         logFile.WriteString(fmt.Sprintf("Time: %v, RPS: %d, Distribution: %s, Duration: %d ms, Request: %v, Response: %v, Latency: %d ms, Worker ID: %s\n",
             endTime.Format(time.RFC3339),
             rps,
@@ -77,34 +88,57 @@ func main() {
     }
     defer logFile.Close()
 
-    // Test with different RPS and CPU-spin duration settings
-    for rps := 5; rps <= 50; rps += 5 {
-        for duration := 100; duration <= 1000; duration += 100 {
-            for _, distribution := range []string{"Uniform", "Poisson"} {
-                startTime := time.Now()
-                logFile.WriteString(fmt.Sprintf("Starting test with %d RPS, %s distribution, %d ms duration\n", rps, distribution, duration))
-                totalDuration := 10 * time.Second
-                endTime := startTime.Add(totalDuration)
+    rps := 10;
 
-                ticker := time.NewTicker(time.Second / time.Duration(rps))
-                defer ticker.Stop()
+    startTime := time.Now()
+    distribution := "Uniform"
+    duration := 500
 
-                for time.Now().Before(endTime) {
-                    select {
-                    case <-ticker.C:
-                        client := clients[rand.Intn(len(clients))] // Randomly select a worker
-                        go sendRequest(client, logFile, rps, distribution, duration)
-                    default:
-                        if distribution == "Poisson" {
-                            time.Sleep(generatePoissonInterval(float64(rps)))
-                            client := clients[rand.Intn(len(clients))] // Randomly select a worker
-                            go sendRequest(client, logFile, rps, distribution, duration)
-                        }
-                    }
-                }
+    ticker := time.NewTicker(time.Second / time.Duration(rps))
+    defer ticker.Stop()
 
-                log.Printf("Test with %d RPS, %s distribution, %d ms duration completed\n", rps, distribution, duration)
-            }
+    totalDuration := 10 * time.Second
+    endTime := startTime.Add(totalDuration)
+    logFile.WriteString(fmt.Sprintf("Starting test with %d RPS, %s distribution, %d ms duration\n", rps, distribution, duration))
+
+    for time.Now().Before(endTime) {
+        select {
+        case <-ticker.C:
+            client := clients[rand.Intn(len(clients))] // Randomly select a worker
+            go sendRequest(client, logFile, rps, distribution, duration)
         }
     }
+
+    log.Printf("Test with %d RPS, %s distribution, %d ms duration completed\n", rps, distribution, duration)
+
+    // // Test with different RPS and CPU-spin duration settings
+    // for rps := 5; rps <= 50; rps += 5 {
+    //     for duration := 100; duration <= 1000; duration += 100 {
+    //         for _, distribution := range []string{"Uniform", "Poisson"} {
+    //             startTime := time.Now()
+    //             logFile.WriteString(fmt.Sprintf("Starting test with %d RPS, %s distribution, %d ms duration\n", rps, distribution, duration))
+    //             totalDuration := 10 * time.Second
+    //             endTime := startTime.Add(totalDuration)
+
+    //             ticker := time.NewTicker(time.Second / time.Duration(rps))
+    //             defer ticker.Stop()
+
+    //             for time.Now().Before(endTime) {
+    //                 select {
+    //                 case <-ticker.C:
+    //                     client := clients[rand.Intn(len(clients))] // Randomly select a worker
+    //                     go sendRequest(client, logFile, rps, distribution, duration)
+    //                 default:
+    //                     if distribution == "Poisson" {
+    //                         time.Sleep(generatePoissonInterval(float64(rps)))
+    //                         client := clients[rand.Intn(len(clients))] // Randomly select a worker
+    //                         go sendRequest(client, logFile, rps, distribution, duration)
+    //                     }
+    //                 }
+    //             }
+
+    //             log.Printf("Test with %d RPS, %s distribution, %d ms duration completed\n", rps, distribution, duration)
+    //         }
+    //     }
+    // }
 }

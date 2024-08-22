@@ -29,7 +29,7 @@ WORKDIR /app
 COPY --from=builder /app/loadgen .
 
 # Expose any ports the app is expected to run on (if applicable, but not needed for loadgen as it's a client)
-# EXPOSE 50052
+EXPOSE 50052
 
 # Command to run the executable
 CMD ["./loadgen"]
